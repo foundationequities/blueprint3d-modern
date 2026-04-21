@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import * as THREE from 'three'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { TopNavBar } from './TopNavBar'
@@ -9,22 +10,38 @@ import { ProjectsView } from './ProjectsView'
 import { SettingsDialog } from './SettingsDialog'
 import { ContextMenu } from './ContextMenu'
 import { BedSizeInput } from './BedSizeInput'
-import { FloorplannerControls } from './FloorplannerControls'
 import { TextureSelector } from './TextureSelector'
 import { SaveFloorplanDialog } from './SaveFloorplanDialog'
 import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
-import DefaultFloorplan from '@blueprint3d/templates/default.json'
 import { blueprintStorage } from '@/services/storage'
+import {
+  INCH_TO_CM,
+  loadShelterById,
+  shelterToFloorplan,
+  type ShelterTemplate
+} from '@/lib/shelter/shelter-template'
+import { buildShelterDoorPlaceholder } from '@/lib/shelter/shelter-door'
+import { useShelterStore } from '@/stores/use-shelter-store'
+import type { ShelterOption } from './ShelterSizePicker'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
-import { floorplannerModes } from '@blueprint3d/floorplanner/floorplanner_view'
-import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
+import {
+  Configuration,
+  configDimUnit,
+  configWallHeight
+} from '@blueprint3d/core/configuration'
 import type { Item } from '@blueprint3d/items/item'
 import type { HalfEdge } from '@blueprint3d/model/half_edge'
 import type { Room } from '@blueprint3d/model/room'
 import { Blueprint3DModes, type Blueprint3DMode } from '@blueprint3d/config/modes'
 import { RoomType } from '@blueprint3d/types/room_types'
+
+const DEFAULT_SHELTER_ID = 'shelter-12x20'
+
+const SHELTER_OPTIONS: ShelterOption[] = [
+  { id: 'shelter-12x20', labelKey: 'sizeOption_12x20' }
+]
 
 export interface Blueprint3DAppConfig {
   enableWheelZoom?: boolean | (() => boolean)
@@ -60,7 +77,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const t = useTranslations('BluePrint.saveDialog')
   const tItems = useTranslations('BluePrint.items')
-  const tFloorplanner = useTranslations('BluePrint.floorplanner')
+  const tShelter = useTranslations('BluePrint.shelter')
   const tMyFloorplans = useTranslations('BluePrint.myFloorplans')
 
   const contentRef = useRef<HTMLDivElement>(null)
@@ -68,18 +85,21 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const floorplannerCanvasRef = useRef<HTMLCanvasElement>(null)
   const blueprint3dRef = useRef<Blueprint3d | null>(null)
   const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
+  const doorPlaceholderRef = useRef<THREE.Mesh | null>(null)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
   )
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
-  const [floorplannerMode, setFloorplannerMode] = useState<'move' | 'draw' | 'delete'>('move')
   const [textureType, setTextureType] = useState<'floor' | 'wall' | null>(null)
   const [currentTarget, setCurrentTarget] = useState<HalfEdge | Room | null>(null)
   const [itemsLoading, setItemsLoading] = useState(0)
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d')
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
+
+  const selectedShelterId = useShelterStore((s) => s.selectedShelterId)
+  const setShelterInStore = useShelterStore((s) => s.setShelter)
 
   const [currentBlueprint, setCurrentBlueprint] = useState<{
     id: string
@@ -95,6 +115,64 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
     return enableWheelZoom
   }, [enableWheelZoom])
+
+  const loadShelterIntoScene = useCallback(
+    async (shelterId: string): Promise<ShelterTemplate> => {
+      const blueprint3d = blueprint3dRef.current
+      if (!blueprint3d) {
+        throw new Error('Blueprint3d not initialized')
+      }
+
+      const template = await loadShelterById(shelterId)
+      Configuration.setValue(
+        configWallHeight,
+        template.dimensions.ceilingHeightIn * INCH_TO_CM
+      )
+
+      const payload = shelterToFloorplan(template)
+      blueprint3d.model.loadSerialized(JSON.stringify(payload))
+
+      if (doorPlaceholderRef.current) {
+        blueprint3d.model.scene.remove(doorPlaceholderRef.current)
+        doorPlaceholderRef.current.geometry.dispose()
+        const mat = doorPlaceholderRef.current.material
+        if (Array.isArray(mat)) {
+          mat.forEach((m) => m.dispose())
+        } else {
+          mat.dispose()
+        }
+        doorPlaceholderRef.current = null
+      }
+
+      const doorMesh = buildShelterDoorPlaceholder(template, blueprint3d.model.floorplan)
+      if (doorMesh) {
+        blueprint3d.model.scene.add(doorMesh)
+        doorPlaceholderRef.current = doorMesh
+      }
+
+      blueprint3d.model.scene.needsUpdate = true
+      setShelterInStore(template)
+      return template
+    },
+    [setShelterInStore]
+  )
+
+  const handleShelterSelect = useCallback(
+    (shelterId: string) => {
+      const toastId = toast.loading(tShelter('loadingToast'))
+      loadShelterIntoScene(shelterId)
+        .then((template) => {
+          toast.success(tShelter('loadedToast', { name: template.name }), {
+            id: toastId
+          })
+        })
+        .catch((err) => {
+          console.error('[Blueprint3DAppBase] Error loading shelter:', err)
+          toast.error(tShelter('loadError'), { id: toastId })
+        })
+    },
+    [loadShelterIntoScene, tShelter]
+  )
 
   // Initialize Blueprint3d
   useEffect(() => {
@@ -169,32 +247,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
     })
 
-    // Load floorplan from IndexedDB or use default
-    const loadInitialFloorplan = async () => {
-      try {
-        const { blueprintTemplateDB } = await import('@blueprint3d/indexdb/blueprint-template')
-        const savedTemplate = await blueprintTemplateDB.getTemplate()
-
-        if (savedTemplate) {
-          blueprint3d.model.loadSerialized(JSON.stringify(savedTemplate))
-          return
-        }
-
-        const { getModeConfig } = await import('@blueprint3d/config/modes')
-        const modeConfig = getModeConfig(mode)
-        blueprint3d.model.loadSerialized(JSON.stringify(modeConfig.defaultTemplate))
-      } catch (error) {
-        console.error('[Blueprint3DAppBase] Error loading template:', error)
-        blueprint3d.model.loadSerialized(JSON.stringify(DefaultFloorplan))
-      }
-    }
-
-    loadInitialFloorplan()
+    loadShelterIntoScene(DEFAULT_SHELTER_ID).catch((err) => {
+      console.error('[Blueprint3DAppBase] Error loading shelter:', err)
+      toast.error(tShelter('loadError'))
+    })
 
     return () => {
       // Cleanup if needed
     }
-  }, [getWheelZoomEnabled, tItems, mode, onBlueprint3DReady])
+  }, [getWheelZoomEnabled, tItems, tShelter, mode, onBlueprint3DReady, loadShelterIntoScene, alwaysSpin])
 
   // Update wheel zoom setting when it changes
   useEffect(() => {
@@ -468,24 +529,6 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     [viewMode]
   )
 
-  const handleFloorplannerModeChange = useCallback((mode: 'move' | 'draw' | 'delete') => {
-    setFloorplannerMode(mode)
-    if (!blueprint3dRef.current) return
-    const modeMap = {
-      move: floorplannerModes.MOVE,
-      draw: floorplannerModes.DRAW,
-      delete: floorplannerModes.DELETE
-    }
-    blueprint3dRef.current.floorplanner?.setMode(modeMap[mode])
-  }, [])
-
-  const handleFloorplannerDone = useCallback(() => {
-    setViewMode('3d')
-    if (blueprint3dRef.current) {
-      blueprint3dRef.current.model.floorplan.update()
-    }
-  }, [])
-
   const handleItemSelect = useCallback(
     (item: {
       name: string
@@ -538,6 +581,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             onSave={handleSave}
             onNew={handleNew}
             currentBlueprintName={currentBlueprint?.name}
+            shelterOptions={SHELTER_OPTIONS}
+            selectedShelterId={selectedShelterId}
+            onShelterSelect={handleShelterSelect}
           />
         </div>
       )}
@@ -604,21 +650,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             style={{ display: viewMode === '2d' ? 'block' : 'none' }}
           >
             <canvas id="floorplanner-canvas" ref={floorplannerCanvasRef}></canvas>
-            {viewMode === '2d' && !isFullscreen && (
-              <>
-                <FloorplannerControls
-                  mode={floorplannerMode}
-                  onModeChange={handleFloorplannerModeChange}
-                  onDone={handleFloorplannerDone}
-                />
-                {floorplannerMode === 'draw' && (
-                  <div className="absolute left-5 bottom-5 bg-black/50 text-primary-foreground px-2.5 py-1.5 rounded text-sm">
-                    {tFloorplanner('escHint')}
-                  </div>
-                )}
-                <ControlsHelp viewMode="2d" />
-              </>
-            )}
+            {viewMode === '2d' && !isFullscreen && <ControlsHelp viewMode="2d" />}
           </div>
 
           {/* Context Menu */}

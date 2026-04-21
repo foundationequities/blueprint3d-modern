@@ -288,11 +288,15 @@ export class Floorplanner {
     this.view.handleWindowResize()
   }
 
-  /** Sets the interaction mode */
+  /** Sets the interaction mode.
+   * Phase 1: free-draw and delete are disabled — the 2D canvas is
+   * retained (Phase 4 reuses it for top-down mode) but only MOVE is
+   * reachable. Remove the clamp once drawing is reintroduced. */
   public setMode(mode: FloorplannerMode): void {
     this.lastNode = null
-    this.mode = mode
-    this.modeResetCallbacks.forEach((callback) => callback(mode))
+    const next = mode === floorplannerModes.MOVE ? mode : floorplannerModes.MOVE
+    this.mode = next
+    this.modeResetCallbacks.forEach((callback) => callback(next))
     this.updateTarget()
   }
 

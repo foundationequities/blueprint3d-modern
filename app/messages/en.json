@@ -28,6 +28,14 @@
       "3d": "3D",
       "2d": "2D"
     },
+    "shelter": {
+      "sizeLabel": "Shelter size",
+      "sizePlaceholder": "Select a shelter",
+      "sizeOption_12x20": "12' × 20' Standard Shelter",
+      "loadingToast": "Loading shelter…",
+      "loadedToast": "Loaded {name}",
+      "loadError": "Failed to load shelter"
+    },
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
       "adjustWall": "Adjust Wall"

@@ -28,6 +28,14 @@
       "3d": "3D",
       "2d": "2D"
     },
+    "shelter": {
+      "sizeLabel": "机房尺寸",
+      "sizePlaceholder": "请选择机房",
+      "sizeOption_12x20": "12' × 20' 标准机房",
+      "loadingToast": "正在加载机房…",
+      "loadedToast": "已加载 {name}",
+      "loadError": "机房加载失败"
+    },
     "textureSelector": {
       "adjustFloor": "调整地板",
       "adjustWall": "调整墙面"
