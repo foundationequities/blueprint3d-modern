@@ -1,0 +1,28 @@
+{
+  "id": "shelter-12x20",
+  "name": "12' × 20' Standard Shelter",
+  "dimensions": {
+    "widthFt": 12,
+    "depthFt": 20,
+    "ceilingHeightIn": 102
+  },
+  "corners": [
+    { "id": "c1", "x": 0, "z": 0 },
+    { "id": "c2", "x": 144, "z": 0 },
+    { "id": "c3", "x": 144, "z": 240 },
+    { "id": "c4", "x": 0, "z": 240 }
+  ],
+  "walls": [
+    { "id": "w1", "from": "c1", "to": "c2", "side": "front", "exterior": true },
+    { "id": "w2", "from": "c2", "to": "c3", "side": "right", "exterior": true },
+    { "id": "w3", "from": "c3", "to": "c4", "side": "back", "exterior": true },
+    { "id": "w4", "from": "c4", "to": "c1", "side": "left", "exterior": true }
+  ],
+  "door": {
+    "wallId": "w1",
+    "offsetFromStart": 60,
+    "width": 36,
+    "height": 84
+  },
+  "notes": "Standard single-door shelter. Door on the front (short) wall. Add a second door variant if needed."
+}

@@ -1,0 +1,203 @@
+[
+  {
+    "id": "hvac-bard-w24",
+    "name": "Bard WA24 Wall-Mount HVAC (2-ton)",
+    "category": "HVAC",
+    "mountType": "wall",
+    "autoPlacement": {
+      "strategy": "longest-exterior-wall",
+      "heightAFF": 84,
+      "spacingMin": 36,
+      "preferOppositeWall": true
+    },
+    "footprint": { "width": 36, "depth": 12, "height": 84 },
+    "clearance": { "front": 36, "sides": 6, "rear": 0 },
+    "cost": 4850,
+    "specs": {
+      "btuCooling": 24000,
+      "powerDraw": 2400
+    },
+    "modelPath": "/models/hvac-bard-w24.glb",
+    "placeholderColor": "#378ADD"
+  },
+  {
+    "id": "hvac-bard-w36",
+    "name": "Bard WA36 Wall-Mount HVAC (3-ton)",
+    "category": "HVAC",
+    "mountType": "wall",
+    "autoPlacement": {
+      "strategy": "longest-exterior-wall",
+      "heightAFF": 84,
+      "spacingMin": 36,
+      "preferOppositeWall": true
+    },
+    "footprint": { "width": 42, "depth": 14, "height": 88 },
+    "clearance": { "front": 36, "sides": 6, "rear": 0 },
+    "cost": 6200,
+    "specs": {
+      "btuCooling": 36000,
+      "powerDraw": 3400
+    },
+    "modelPath": "/models/hvac-bard-w36.glb",
+    "placeholderColor": "#0C447C"
+  },
+  {
+    "id": "rack-42u-open",
+    "name": "42U Open-Frame Rack",
+    "category": "Racks",
+    "mountType": "floor",
+    "autoPlacement": {
+      "strategy": "next-in-rack-row",
+      "preferredWall": "back",
+      "spacingMin": 2
+    },
+    "footprint": { "width": 24, "depth": 36, "height": 84 },
+    "clearance": { "front": 36, "sides": 2, "rear": 24 },
+    "cost": 950,
+    "specs": {
+      "rackUnits": 42,
+      "powerDraw": 0
+    },
+    "modelPath": "/models/rack-42u-open.glb",
+    "placeholderColor": "#1D9E75"
+  },
+  {
+    "id": "rack-42u-enclosed",
+    "name": "42U Enclosed Cabinet",
+    "category": "Racks",
+    "mountType": "floor",
+    "autoPlacement": {
+      "strategy": "next-in-rack-row",
+      "preferredWall": "back",
+      "spacingMin": 2
+    },
+    "footprint": { "width": 24, "depth": 40, "height": 84 },
+    "clearance": { "front": 36, "sides": 2, "rear": 30 },
+    "cost": 1650,
+    "specs": {
+      "rackUnits": 42,
+      "powerDraw": 0
+    },
+    "modelPath": "/models/rack-42u-enclosed.glb",
+    "placeholderColor": "#085041"
+  },
+  {
+    "id": "ladder-tray-12",
+    "name": "12\" Aluminum Ladder Tray",
+    "category": "CableManagement",
+    "mountType": "ceiling",
+    "autoPlacement": {
+      "strategy": "centerline-above-rack-row",
+      "heightAFF": 96,
+      "defaultLengthFt": 16
+    },
+    "footprint": { "width": 12, "depth": 192, "height": 4 },
+    "parametric": true,
+    "cost": 0,
+    "costPerFoot": 18,
+    "specs": {
+      "widthInches": 12
+    },
+    "modelPath": "/models/ladder-tray-12.glb",
+    "placeholderColor": "#534AB7"
+  },
+  {
+    "id": "ladder-tray-18",
+    "name": "18\" Aluminum Ladder Tray",
+    "category": "CableManagement",
+    "mountType": "ceiling",
+    "autoPlacement": {
+      "strategy": "centerline-above-rack-row",
+      "heightAFF": 96,
+      "defaultLengthFt": 16
+    },
+    "footprint": { "width": 18, "depth": 192, "height": 4 },
+    "parametric": true,
+    "cost": 0,
+    "costPerFoot": 26,
+    "specs": {
+      "widthInches": 18
+    },
+    "modelPath": "/models/ladder-tray-18.glb",
+    "placeholderColor": "#3C3489"
+  },
+  {
+    "id": "battery-string-48v",
+    "name": "48V Battery String (800Ah)",
+    "category": "Power",
+    "mountType": "floor",
+    "autoPlacement": {
+      "strategy": "against-wall",
+      "preferredWall": "any",
+      "spacingMin": 12
+    },
+    "footprint": { "width": 48, "depth": 30, "height": 36 },
+    "clearance": { "front": 30, "sides": 6, "rear": 6 },
+    "cost": 12500,
+    "specs": {
+      "voltage": 48,
+      "ahCapacity": 800,
+      "powerDraw": 0
+    },
+    "modelPath": "/models/battery-string-48v.glb",
+    "placeholderColor": "#FAC775"
+  },
+  {
+    "id": "rectifier-dc-plant",
+    "name": "DC Power Plant (200A)",
+    "category": "Power",
+    "mountType": "floor",
+    "autoPlacement": {
+      "strategy": "against-wall",
+      "preferredWall": "any",
+      "spacingMin": 6
+    },
+    "footprint": { "width": 23, "depth": 24, "height": 84 },
+    "clearance": { "front": 36, "sides": 4, "rear": 6 },
+    "cost": 8900,
+    "specs": {
+      "ampsDC": 200,
+      "powerDraw": 500
+    },
+    "modelPath": "/models/rectifier-dc-plant.glb",
+    "placeholderColor": "#BA7517"
+  },
+  {
+    "id": "isp-cabinet-outdoor",
+    "name": "ISP Demarcation Cabinet",
+    "category": "Cabinets",
+    "mountType": "wall",
+    "autoPlacement": {
+      "strategy": "longest-exterior-wall",
+      "heightAFF": 60,
+      "spacingMin": 12
+    },
+    "footprint": { "width": 24, "depth": 8, "height": 30 },
+    "clearance": { "front": 24, "sides": 2, "rear": 0 },
+    "cost": 1200,
+    "specs": {
+      "powerDraw": 0
+    },
+    "modelPath": "/models/isp-cabinet-outdoor.glb",
+    "placeholderColor": "#7F77DD"
+  },
+  {
+    "id": "surge-protector",
+    "name": "Transient Voltage Surge Protector",
+    "category": "Power",
+    "mountType": "wall",
+    "autoPlacement": {
+      "strategy": "longest-exterior-wall",
+      "heightAFF": 72,
+      "spacingMin": 6
+    },
+    "footprint": { "width": 12, "depth": 6, "height": 16 },
+    "clearance": { "front": 12, "sides": 2, "rear": 0 },
+    "cost": 650,
+    "specs": {
+      "powerDraw": 0
+    },
+    "modelPath": "/models/surge-protector.glb",
+    "placeholderColor": "#993C1D"
+  }
+]
