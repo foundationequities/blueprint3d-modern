@@ -9,7 +9,7 @@
     "dev:nextjs": "cd app && next dev --turbopack",
     "build": "pnpm install && cd app && pnpm install && pnpm run build",
     "build:nextjs": "cd app && next build",
-    "start": "cd app && next start",
+    "start": "cd app && pnpm start",
     "start:nextjs": "cd app && next start",
     "ts": "tsc --noEmit"
   },
