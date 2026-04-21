@@ -35,6 +35,7 @@
       "selectSubhead": "Choose a product line and size, then build.",
       "buildButton": "Build shelter",
       "buildingButton": "Building…",
+      "switchDoorButton": "Switch door side",
       "builtStatus": "Built: {size} {category}",
       "pendingChange": "Selection changed — click Build to rebuild.",
       "emptyTitle": "No shelter yet",

@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Hammer } from 'lucide-react'
+import { CheckCircle2, DoorOpen, Hammer } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,8 @@ interface SelectShelterPanelProps {
   onSelect: (id: string) => void
   onBuild: () => void
   isBuilding: boolean
+  onSwitchDoor?: () => void
+  canSwitchDoor: boolean
 }
 
 export function SelectShelterPanel({
@@ -20,7 +22,9 @@ export function SelectShelterPanel({
   builtSelectionId,
   onSelect,
   onBuild,
-  isBuilding
+  isBuilding,
+  onSwitchDoor,
+  canSwitchDoor
 }: SelectShelterPanelProps) {
   const t = useTranslations('BluePrint.shelter')
 
@@ -61,6 +65,19 @@ export function SelectShelterPanel({
         <Hammer className="size-4 mr-2" />
         {isBuilding ? t('buildingButton') : t('buildButton')}
       </Button>
+
+      {!!built && canSwitchDoor && onSwitchDoor && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onSwitchDoor}
+          className="w-full font-medium tracking-wide"
+        >
+          <DoorOpen className="size-4 mr-2" />
+          {t('switchDoorButton')}
+        </Button>
+      )}
 
       {built && (
         <div className="flex items-start gap-2 text-xs text-muted-foreground">

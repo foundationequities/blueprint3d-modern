@@ -35,6 +35,7 @@
       "selectSubhead": "請選擇產品系列與尺寸，然後點擊建立。",
       "buildButton": "建立機房",
       "buildingButton": "建立中…",
+      "switchDoorButton": "切換門的位置",
       "builtStatus": "已建立：{size} {category}",
       "pendingChange": "已變更選擇，請點擊建立以重建。",
       "emptyTitle": "尚未建立機房",

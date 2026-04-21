@@ -12,6 +12,8 @@ interface ConfiguratorSidebarProps {
   onSelect: (id: string) => void
   onBuild: () => void
   isBuilding: boolean
+  onSwitchDoor?: () => void
+  canSwitchDoor: boolean
   onItemSelect: (item: {
     name: string
     key: string
@@ -27,6 +29,8 @@ export function ConfiguratorSidebar({
   onSelect,
   onBuild,
   isBuilding,
+  onSwitchDoor,
+  canSwitchDoor,
   onItemSelect
 }: ConfiguratorSidebarProps) {
   const t = useTranslations('BluePrint.shelter')
@@ -42,6 +46,8 @@ export function ConfiguratorSidebar({
         onSelect={onSelect}
         onBuild={onBuild}
         isBuilding={isBuilding}
+        onSwitchDoor={onSwitchDoor}
+        canSwitchDoor={canSwitchDoor}
       />
 
       <section className="flex-1 min-h-0 flex flex-col">

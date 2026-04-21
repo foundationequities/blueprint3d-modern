@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -23,7 +23,11 @@ import {
   shelterToFloorplan,
   type ShelterTemplate
 } from '@/lib/shelter/shelter-template'
-import { buildShelterDoorPlaceholder } from '@/lib/shelter/shelter-door'
+import {
+  getDoorCandidateWallIds,
+  installShelterDoor,
+  type ShelterDoorHandle
+} from '@/lib/shelter/shelter-door'
 import { findCatalogOption } from '@/lib/shelter/shelter-catalog'
 import { useShelterStore } from '@/stores/use-shelter-store'
 
@@ -81,7 +85,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const floorplannerCanvasRef = useRef<HTMLCanvasElement>(null)
   const blueprint3dRef = useRef<Blueprint3d | null>(null)
   const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
-  const doorPlaceholderRef = useRef<THREE.Mesh | null>(null)
+  const doorHandleRef = useRef<ShelterDoorHandle | null>(null)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
@@ -96,9 +100,17 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const pendingSelectionId = useShelterStore((s) => s.pendingSelectionId)
   const builtSelectionId = useShelterStore((s) => s.builtSelectionId)
+  const template = useShelterStore((s) => s.template)
+  const activeDoorIndex = useShelterStore((s) => s.activeDoorIndex)
   const setPendingSelection = useShelterStore((s) => s.setPending)
   const setBuiltInStore = useShelterStore((s) => s.setBuilt)
+  const setActiveDoorIndex = useShelterStore((s) => s.setActiveDoorIndex)
   const [isBuilding, setIsBuilding] = useState(false)
+
+  const doorCandidates = useMemo(
+    () => (template ? getDoorCandidateWallIds(template) : []),
+    [template]
+  )
 
   const [currentBlueprint, setCurrentBlueprint] = useState<{
     id: string
@@ -115,19 +127,34 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return enableWheelZoom
   }, [enableWheelZoom])
 
-  const disposeDoorPlaceholder = useCallback(() => {
-    const blueprint3d = blueprint3dRef.current
-    if (!blueprint3d || !doorPlaceholderRef.current) return
-    blueprint3d.model.scene.remove(doorPlaceholderRef.current)
-    doorPlaceholderRef.current.geometry.dispose()
-    const mat = doorPlaceholderRef.current.material
-    if (Array.isArray(mat)) {
-      mat.forEach((m) => m.dispose())
-    } else {
-      mat.dispose()
+  const disposeDoor = useCallback(() => {
+    if (doorHandleRef.current) {
+      doorHandleRef.current.dispose()
+      doorHandleRef.current = null
     }
-    doorPlaceholderRef.current = null
   }, [])
+
+  const installDoorForIndex = useCallback(
+    (tmpl: ShelterTemplate, index: number) => {
+      const blueprint3d = blueprint3dRef.current
+      if (!blueprint3d) return
+      const candidates = getDoorCandidateWallIds(tmpl)
+      if (candidates.length === 0) return
+      const wallId = candidates[index % candidates.length]
+      disposeDoor()
+      const handle = installShelterDoor(
+        tmpl,
+        wallId,
+        blueprint3d.model.scene.getScene(),
+        blueprint3d.model.floorplan
+      )
+      if (handle) {
+        doorHandleRef.current = handle
+      }
+      blueprint3d.model.scene.needsUpdate = true
+    },
+    [disposeDoor]
+  )
 
   const buildShelterFromOption = useCallback(
     async (optionId: string): Promise<ShelterTemplate> => {
@@ -136,28 +163,32 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       const option = findCatalogOption(optionId)
       if (!option) throw new Error(`Unknown shelter option: ${optionId}`)
 
-      const template = await loadShelterById(option.templateId)
+      const tmpl = await loadShelterById(option.templateId)
       Configuration.setValue(
         configWallHeight,
-        template.dimensions.ceilingHeightIn * INCH_TO_CM
+        tmpl.dimensions.ceilingHeightIn * INCH_TO_CM
       )
 
-      const payload = shelterToFloorplan(template)
+      disposeDoor()
+      const payload = shelterToFloorplan(tmpl)
       blueprint3d.model.loadSerialized(JSON.stringify(payload))
 
-      disposeDoorPlaceholder()
-      const doorMesh = buildShelterDoorPlaceholder(template, blueprint3d.model.floorplan)
-      if (doorMesh) {
-        blueprint3d.model.scene.add(doorMesh)
-        doorPlaceholderRef.current = doorMesh
-      }
+      // Place the door on the first candidate (longest wall).
+      installDoorForIndex(tmpl, 0)
 
       blueprint3d.model.scene.needsUpdate = true
-      setBuiltInStore(option.id, template)
-      return template
+      setBuiltInStore(option.id, tmpl)
+      return tmpl
     },
-    [setBuiltInStore, disposeDoorPlaceholder]
+    [setBuiltInStore, disposeDoor, installDoorForIndex]
   )
+
+  const handleSwitchDoor = useCallback(() => {
+    if (!template || doorCandidates.length < 2) return
+    const next = (activeDoorIndex + 1) % doorCandidates.length
+    installDoorForIndex(template, next)
+    setActiveDoorIndex(next)
+  }, [template, doorCandidates, activeDoorIndex, installDoorForIndex, setActiveDoorIndex])
 
   const handleShelterSelect = useCallback(
     (optionId: string) => {
@@ -740,6 +771,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             onSelect={handleShelterSelect}
             onBuild={handleBuildShelter}
             isBuilding={isBuilding}
+            onSwitchDoor={handleSwitchDoor}
+            canSwitchDoor={doorCandidates.length >= 2}
             onItemSelect={handleItemSelect}
           />
         </div>

@@ -35,6 +35,7 @@
       "selectSubhead": "选择产品系列与尺寸，然后点击构建。",
       "buildButton": "构建机房",
       "buildingButton": "构建中…",
+      "switchDoorButton": "切换门的位置",
       "builtStatus": "已构建：{size} {category}",
       "pendingChange": "已更改选择，请点击构建以重建。",
       "emptyTitle": "尚未构建机房",
