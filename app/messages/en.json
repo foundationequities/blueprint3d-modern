@@ -31,10 +31,34 @@
     "shelter": {
       "sizeLabel": "Shelter size",
       "sizePlaceholder": "Select a shelter",
-      "sizeOption_12x20": "12' × 20' Standard Shelter",
-      "loadingToast": "Loading shelter…",
-      "loadedToast": "Loaded {name}",
-      "loadError": "Failed to load shelter"
+      "selectHeader": "Select shelter size",
+      "selectSubhead": "Choose a product line and size, then build.",
+      "buildButton": "Build shelter",
+      "buildingButton": "Building…",
+      "builtStatus": "Built: {size} {category}",
+      "pendingChange": "Selection changed — click Build to rebuild.",
+      "emptyTitle": "No shelter yet",
+      "emptyBody": "Pick a size from the right panel and click Build to start your configuration.",
+      "itemsLocked": "Build first",
+      "loadingToast": "Building shelter…",
+      "loadedToast": "Built {name}",
+      "loadError": "Failed to build shelter",
+      "categories": {
+        "concrete": "Concrete",
+        "datacommPro": "Datacomm Pro"
+      },
+      "sizes": {
+        "9x16": "9' × 16'",
+        "10x12": "10' × 12'",
+        "10x20": "10' × 20'",
+        "12x16": "12' × 16'",
+        "12x20": "12' × 20'",
+        "12x26": "12' × 26'",
+        "24x36": "24' × 36'"
+      }
+    },
+    "brand": {
+      "title": "Shelter Configurator"
     },
     "textureSelector": {
       "adjustFloor": "Adjust Floor",

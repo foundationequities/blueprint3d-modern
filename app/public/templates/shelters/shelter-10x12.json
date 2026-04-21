@@ -1,0 +1,27 @@
+{
+  "id": "shelter-10x12",
+  "name": "10' × 12' Shelter",
+  "dimensions": {
+    "widthFt": 10,
+    "depthFt": 12,
+    "ceilingHeightIn": 102
+  },
+  "corners": [
+    { "id": "c1", "x": 0, "z": 0 },
+    { "id": "c2", "x": 120, "z": 0 },
+    { "id": "c3", "x": 120, "z": 144 },
+    { "id": "c4", "x": 0, "z": 144 }
+  ],
+  "walls": [
+    { "id": "w1", "from": "c1", "to": "c2", "side": "front", "exterior": true },
+    { "id": "w2", "from": "c2", "to": "c3", "side": "right", "exterior": true },
+    { "id": "w3", "from": "c3", "to": "c4", "side": "back", "exterior": true },
+    { "id": "w4", "from": "c4", "to": "c1", "side": "left", "exterior": true }
+  ],
+  "door": {
+    "wallId": "w1",
+    "offsetFromStart": 42,
+    "width": 36,
+    "height": 84
+  }
+}

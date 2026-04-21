@@ -5,7 +5,8 @@ import * as THREE from 'three'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { TopNavBar } from './TopNavBar'
-import { ItemsDrawer } from './ItemsDrawer'
+import { ConfiguratorSidebar } from './ConfiguratorSidebar'
+import { ShelterEmptyState } from './ShelterEmptyState'
 import { ProjectsView } from './ProjectsView'
 import { SettingsDialog } from './SettingsDialog'
 import { ContextMenu } from './ContextMenu'
@@ -22,8 +23,8 @@ import {
   type ShelterTemplate
 } from '@/lib/shelter/shelter-template'
 import { buildShelterDoorPlaceholder } from '@/lib/shelter/shelter-door'
+import { findCatalogOption } from '@/lib/shelter/shelter-catalog'
 import { useShelterStore } from '@/stores/use-shelter-store'
-import type { ShelterOption } from './ShelterSizePicker'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
 import {
@@ -36,12 +37,6 @@ import type { HalfEdge } from '@blueprint3d/model/half_edge'
 import type { Room } from '@blueprint3d/model/room'
 import { Blueprint3DModes, type Blueprint3DMode } from '@blueprint3d/config/modes'
 import { RoomType } from '@blueprint3d/types/room_types'
-
-const DEFAULT_SHELTER_ID = 'shelter-12x20'
-
-const SHELTER_OPTIONS: ShelterOption[] = [
-  { id: 'shelter-12x20', labelKey: 'sizeOption_12x20' }
-]
 
 export interface Blueprint3DAppConfig {
   enableWheelZoom?: boolean | (() => boolean)
@@ -98,8 +93,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('3d')
   const [saveDialogOpen, setSaveDialogOpen] = useState(false)
 
-  const selectedShelterId = useShelterStore((s) => s.selectedShelterId)
-  const setShelterInStore = useShelterStore((s) => s.setShelter)
+  const pendingSelectionId = useShelterStore((s) => s.pendingSelectionId)
+  const builtSelectionId = useShelterStore((s) => s.builtSelectionId)
+  const setPendingSelection = useShelterStore((s) => s.setPending)
+  const setBuiltInStore = useShelterStore((s) => s.setBuilt)
+  const [isBuilding, setIsBuilding] = useState(false)
 
   const [currentBlueprint, setCurrentBlueprint] = useState<{
     id: string
@@ -116,14 +114,28 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return enableWheelZoom
   }, [enableWheelZoom])
 
-  const loadShelterIntoScene = useCallback(
-    async (shelterId: string): Promise<ShelterTemplate> => {
-      const blueprint3d = blueprint3dRef.current
-      if (!blueprint3d) {
-        throw new Error('Blueprint3d not initialized')
-      }
+  const disposeDoorPlaceholder = useCallback(() => {
+    const blueprint3d = blueprint3dRef.current
+    if (!blueprint3d || !doorPlaceholderRef.current) return
+    blueprint3d.model.scene.remove(doorPlaceholderRef.current)
+    doorPlaceholderRef.current.geometry.dispose()
+    const mat = doorPlaceholderRef.current.material
+    if (Array.isArray(mat)) {
+      mat.forEach((m) => m.dispose())
+    } else {
+      mat.dispose()
+    }
+    doorPlaceholderRef.current = null
+  }, [])
 
-      const template = await loadShelterById(shelterId)
+  const buildShelterFromOption = useCallback(
+    async (optionId: string): Promise<ShelterTemplate> => {
+      const blueprint3d = blueprint3dRef.current
+      if (!blueprint3d) throw new Error('Blueprint3d not initialized')
+      const option = findCatalogOption(optionId)
+      if (!option) throw new Error(`Unknown shelter option: ${optionId}`)
+
+      const template = await loadShelterById(option.templateId)
       Configuration.setValue(
         configWallHeight,
         template.dimensions.ceilingHeightIn * INCH_TO_CM
@@ -132,18 +144,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       const payload = shelterToFloorplan(template)
       blueprint3d.model.loadSerialized(JSON.stringify(payload))
 
-      if (doorPlaceholderRef.current) {
-        blueprint3d.model.scene.remove(doorPlaceholderRef.current)
-        doorPlaceholderRef.current.geometry.dispose()
-        const mat = doorPlaceholderRef.current.material
-        if (Array.isArray(mat)) {
-          mat.forEach((m) => m.dispose())
-        } else {
-          mat.dispose()
-        }
-        doorPlaceholderRef.current = null
-      }
-
+      disposeDoorPlaceholder()
       const doorMesh = buildShelterDoorPlaceholder(template, blueprint3d.model.floorplan)
       if (doorMesh) {
         blueprint3d.model.scene.add(doorMesh)
@@ -151,28 +152,38 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
 
       blueprint3d.model.scene.needsUpdate = true
-      setShelterInStore(template)
+      setBuiltInStore(option.id, template)
       return template
     },
-    [setShelterInStore]
+    [setBuiltInStore, disposeDoorPlaceholder]
   )
 
   const handleShelterSelect = useCallback(
-    (shelterId: string) => {
-      const toastId = toast.loading(tShelter('loadingToast'))
-      loadShelterIntoScene(shelterId)
-        .then((template) => {
-          toast.success(tShelter('loadedToast', { name: template.name }), {
-            id: toastId
-          })
-        })
-        .catch((err) => {
-          console.error('[Blueprint3DAppBase] Error loading shelter:', err)
-          toast.error(tShelter('loadError'), { id: toastId })
-        })
+    (optionId: string) => {
+      setPendingSelection(optionId)
     },
-    [loadShelterIntoScene, tShelter]
+    [setPendingSelection]
   )
+
+  const handleBuildShelter = useCallback(() => {
+    if (!pendingSelectionId || isBuilding) return
+    if (pendingSelectionId === builtSelectionId) return
+    setIsBuilding(true)
+    const toastId = toast.loading(tShelter('loadingToast'))
+    buildShelterFromOption(pendingSelectionId)
+      .then((template) => {
+        toast.success(tShelter('loadedToast', { name: template.name }), {
+          id: toastId
+        })
+      })
+      .catch((err) => {
+        console.error('[Blueprint3DAppBase] Error building shelter:', err)
+        toast.error(tShelter('loadError'), { id: toastId })
+      })
+      .finally(() => {
+        setIsBuilding(false)
+      })
+  }, [pendingSelectionId, builtSelectionId, isBuilding, buildShelterFromOption, tShelter])
 
   // Initialize Blueprint3d
   useEffect(() => {
@@ -247,15 +258,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       }
     })
 
-    loadShelterIntoScene(DEFAULT_SHELTER_ID).catch((err) => {
-      console.error('[Blueprint3DAppBase] Error loading shelter:', err)
-      toast.error(tShelter('loadError'))
-    })
+    // No auto-load: the scene starts empty. User picks a shelter in the
+    // sidebar dropdown and clicks BUILD to populate it.
 
     return () => {
       // Cleanup if needed
     }
-  }, [getWheelZoomEnabled, tItems, tShelter, mode, onBlueprint3DReady, loadShelterIntoScene, alwaysSpin])
+  }, [getWheelZoomEnabled, tItems, mode, onBlueprint3DReady, alwaysSpin])
 
   // Update wheel zoom setting when it changes
   useEffect(() => {
@@ -567,11 +576,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     [currentTarget]
   )
 
+  const sidebarVisible = !isFullscreen
+
   return (
     <div className="relative h-full w-full">
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar — stops short of the sidebar */}
       {!isFullscreen && (
-        <div className="absolute top-0 left-0 right-0 z-50">
+        <div
+          className={`absolute top-0 left-0 z-50 ${sidebarVisible ? 'right-[340px]' : 'right-0'}`}
+        >
           <TopNavBar
             activeTab={activeTab}
             onTabChange={handleTabChange}
@@ -581,15 +594,15 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             onSave={handleSave}
             onNew={handleNew}
             currentBlueprintName={currentBlueprint?.name}
-            shelterOptions={SHELTER_OPTIONS}
-            selectedShelterId={selectedShelterId}
-            onShelterSelect={handleShelterSelect}
           />
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div ref={contentRef} className="h-full w-full relative overflow-hidden">
+      {/* Main Content Area — pushed left of the sidebar */}
+      <div
+        ref={contentRef}
+        className={`absolute top-0 left-0 bottom-0 overflow-hidden ${sidebarVisible ? 'right-[340px]' : 'right-0'}`}
+      >
         <TouchHelp />
 
         {/* Projects View */}
@@ -653,6 +666,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             {viewMode === '2d' && !isFullscreen && <ControlsHelp viewMode="2d" />}
           </div>
 
+          {/* Empty-state overlay when no shelter has been built yet */}
+          {!builtSelectionId && !isFullscreen && (
+            <ShelterEmptyState />
+          )}
+
           {/* Context Menu */}
           {selectedItem && !textureType && !isFullscreen && (
             <div className="absolute right-2 md:right-4 top-16 md:top-20 z-[70]">
@@ -681,6 +699,20 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
         </div>
       </div>
 
+      {/* Configurator Sidebar — always visible on the right */}
+      {sidebarVisible && (
+        <div className="absolute top-0 right-0 bottom-0 w-[340px] z-40 shadow-xl">
+          <ConfiguratorSidebar
+            pendingSelectionId={pendingSelectionId}
+            builtSelectionId={builtSelectionId}
+            onSelect={handleShelterSelect}
+            onBuild={handleBuildShelter}
+            isBuilding={isBuilding}
+            onItemSelect={handleItemSelect}
+          />
+        </div>
+      )}
+
       {/* Current Blueprint Name indicator */}
       {currentBlueprint && !isFullscreen && activeTab !== 'projects' && (
         <div className="absolute bottom-3 left-3 z-40 pointer-events-none">
@@ -689,13 +721,6 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           </span>
         </div>
       )}
-
-      {/* Items Drawer */}
-      <ItemsDrawer
-        isOpen={activeTab === 'items'}
-        onClose={() => setActiveTab('edit')}
-        onItemSelect={handleItemSelect}
-      />
 
       {/* Settings Dialog */}
       <SettingsDialog

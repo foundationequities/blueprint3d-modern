@@ -4,19 +4,16 @@ import { useTranslations } from 'next-intl'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-
-export interface ShelterOption {
-  id: string
-  labelKey: string
-}
+import { SHELTER_CATALOG } from '@/lib/shelter/shelter-catalog'
 
 interface ShelterSizePickerProps {
-  options: ShelterOption[]
   selectedId: string | null
   onSelect: (id: string) => void
   disabled?: boolean
@@ -24,7 +21,6 @@ interface ShelterSizePickerProps {
 }
 
 export function ShelterSizePicker({
-  options,
   selectedId,
   onSelect,
   disabled,
@@ -33,26 +29,28 @@ export function ShelterSizePicker({
   const t = useTranslations('BluePrint.shelter')
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <span className="text-sm font-medium text-muted-foreground">
-        {t('sizeLabel')}
-      </span>
-      <Select
-        value={selectedId ?? undefined}
-        onValueChange={onSelect}
-        disabled={disabled}
-      >
-        <SelectTrigger className="min-w-[220px]">
-          <SelectValue placeholder={t('sizePlaceholder')} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.id} value={opt.id}>
-              {t(opt.labelKey)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <Select
+      value={selectedId ?? undefined}
+      onValueChange={onSelect}
+      disabled={disabled}
+    >
+      <SelectTrigger className={cn('w-full', className)}>
+        <SelectValue placeholder={t('sizePlaceholder')} />
+      </SelectTrigger>
+      <SelectContent>
+        {SHELTER_CATALOG.map((category) => (
+          <SelectGroup key={category.labelKey}>
+            <SelectLabel className="uppercase tracking-wide text-[10px] font-semibold">
+              {t(`categories.${category.labelKey}`)}
+            </SelectLabel>
+            {category.options.map((opt) => (
+              <SelectItem key={opt.id} value={opt.id}>
+                {t(`sizes.${opt.labelKey}`)}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

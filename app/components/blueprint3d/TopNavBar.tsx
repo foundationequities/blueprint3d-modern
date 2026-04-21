@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { useTranslations } from 'next-intl'
 import { useIsMobile } from "@/hooks/use-media-query"
-import { ShelterSizePicker, type ShelterOption } from "./ShelterSizePicker"
 
 interface TopNavBarProps {
   activeTab: 'projects' | 'edit' | 'items'
@@ -17,9 +16,6 @@ interface TopNavBarProps {
   onSave: () => void
   onNew: () => void
   currentBlueprintName?: string | null
-  shelterOptions?: ShelterOption[]
-  selectedShelterId?: string | null
-  onShelterSelect?: (id: string) => void
 }
 
 export function TopNavBar({
@@ -30,29 +26,34 @@ export function TopNavBar({
   onSettingsClick,
   onSave,
   onNew,
-  currentBlueprintName,
-  shelterOptions,
-  selectedShelterId,
-  onShelterSelect
+  currentBlueprintName
 }: TopNavBarProps) {
   const t = useTranslations('BluePrint.sidebar')
   const tMain = useTranslations('BluePrint.mainControls')
+  const tBrand = useTranslations('BluePrint.brand')
   const isMobile = useIsMobile()
 
   const tabs = [
     { id: 'projects' as const, label: t('projects') },
-    { id: 'edit' as const, label: t('edit') },
-    { id: 'items' as const, label: t('addItems') }
+    { id: 'edit' as const, label: t('edit') }
   ]
 
   return (
-    <div className={cn('bg-transparent relative pointer-events-none', isMobile ? 'h-12' : 'h-14')}>
-      {/* Left: Tabs + Shelter picker */}
+    <div className={cn('bg-background/80 backdrop-blur-md border-b border-border/60 relative pointer-events-none', isMobile ? 'h-12' : 'h-14')}>
+      {/* Left: Brand + Tabs */}
       {!(activeTab === 'edit' && viewMode === '2d') && (
         <div className={cn(
           'absolute top-0 flex items-center pointer-events-auto',
-          isMobile ? 'left-2 h-12 gap-2' : 'left-4 h-14 gap-3'
+          isMobile ? 'left-2 h-12 gap-2' : 'left-4 h-14 gap-4'
         )}>
+          {!isMobile && (
+            <>
+              <span className="font-semibold tracking-tight text-sm uppercase">
+                {tBrand('title')}
+              </span>
+              <div className="h-6 w-px bg-border" aria-hidden />
+            </>
+          )}
           <div className={cn('flex', isMobile ? 'gap-0.5' : 'gap-1')}>
             {tabs.map((tab) => (
               <button
@@ -60,7 +61,7 @@ export function TopNavBar({
                 onClick={() => onTabChange(tab.id)}
                 className={cn(
                   'rounded-md font-medium transition-colors',
-                  isMobile ? 'px-2 py-1.5 text-xs' : 'px-4 py-2 text-sm',
+                  isMobile ? 'px-2 py-1.5 text-xs' : 'px-3 py-1.5 text-sm',
                   activeTab === tab.id
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
@@ -70,14 +71,6 @@ export function TopNavBar({
               </button>
             ))}
           </div>
-
-          {!isMobile && shelterOptions && shelterOptions.length > 0 && onShelterSelect && (
-            <ShelterSizePicker
-              options={shelterOptions}
-              selectedId={selectedShelterId ?? null}
-              onSelect={onShelterSelect}
-            />
-          )}
         </div>
       )}
 
@@ -86,7 +79,7 @@ export function TopNavBar({
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-[100]">
           <div className={cn(
             'flex items-center bg-background/50 backdrop-blur-sm rounded-full border border-border/50',
-            isMobile ? 'gap-2 px-3 py-1.5' : 'gap-3 px-4 py-2'
+            isMobile ? 'gap-2 px-3 py-1.5' : 'gap-3 px-4 py-1.5'
           )}>
             <span className={cn(
               'font-medium transition-colors',

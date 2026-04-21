@@ -31,10 +31,34 @@
     "shelter": {
       "sizeLabel": "机房尺寸",
       "sizePlaceholder": "请选择机房",
-      "sizeOption_12x20": "12' × 20' 标准机房",
-      "loadingToast": "正在加载机房…",
-      "loadedToast": "已加载 {name}",
-      "loadError": "机房加载失败"
+      "selectHeader": "选择机房尺寸",
+      "selectSubhead": "选择产品系列与尺寸，然后点击构建。",
+      "buildButton": "构建机房",
+      "buildingButton": "构建中…",
+      "builtStatus": "已构建：{size} {category}",
+      "pendingChange": "已更改选择，请点击构建以重建。",
+      "emptyTitle": "尚未构建机房",
+      "emptyBody": "请在右侧面板选择尺寸并点击构建以开始配置。",
+      "itemsLocked": "请先构建",
+      "loadingToast": "正在构建机房…",
+      "loadedToast": "已构建 {name}",
+      "loadError": "机房构建失败",
+      "categories": {
+        "concrete": "混凝土",
+        "datacommPro": "Datacomm Pro"
+      },
+      "sizes": {
+        "9x16": "9' × 16'",
+        "10x12": "10' × 12'",
+        "10x20": "10' × 20'",
+        "12x16": "12' × 16'",
+        "12x20": "12' × 20'",
+        "12x26": "12' × 26'",
+        "24x36": "24' × 36'"
+      }
+    },
+    "brand": {
+      "title": "机房配置器"
     },
     "textureSelector": {
       "adjustFloor": "调整地板",
