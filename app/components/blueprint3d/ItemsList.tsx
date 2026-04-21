@@ -10,42 +10,35 @@ interface ItemsListProps {
   onItemSelect: (item: { name: string; key: string; model: string; type: string }) => void
 }
 
-const CATEGORY_KEYS = {
+// Demo scope: only surface residential items that are verified to load from
+// the upstream CDN without errors. Other categories exist in the underlying
+// ITEMS constant but are hidden here until they're validated.
+type AllowedCategory = Extract<ItemCategory, 'bed' | 'sofa' | 'armchair'>
+
+const CATEGORY_KEYS: Record<AllowedCategory | 'all', string> = {
   all: 'all',
   bed: 'bed',
-  drawer: 'drawer',
-  wardrobe: 'wardrobe',
-  light: 'light',
-  storage: 'storage',
-  table: 'table',
-  chair: 'chair',
   sofa: 'sofa',
-  armchair: 'armchair',
-  stool: 'stool',
-  door: 'door',
-  window: 'window'
-} as const
+  armchair: 'armchair'
+}
 
-const CATEGORY_VALUES: Array<ItemCategory | 'all'> = [
+const CATEGORY_VALUES: Array<AllowedCategory | 'all'> = [
   'all',
   'bed',
-  'drawer',
-  'wardrobe',
-  'light',
-  'storage',
-  'table',
-  'chair',
   'sofa',
-  'armchair',
-  'stool',
-  'door',
-  'window'
+  'armchair'
 ]
+
+const ALLOWED_CATEGORIES: ReadonlySet<AllowedCategory> = new Set<AllowedCategory>([
+  'bed',
+  'sofa',
+  'armchair'
+])
 
 export function ItemsList({ onItemSelect }: ItemsListProps) {
   const t = useTranslations('BluePrint.items')
 
-  const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all')
+  const [selectedCategory, setSelectedCategory] = useState<AllowedCategory | 'all'>('all')
 
   // Build categories with translated labels
   const categories = useMemo(() => {
@@ -57,7 +50,9 @@ export function ItemsList({ onItemSelect }: ItemsListProps) {
 
   // Filter items based on selected category
   const filteredItems = useMemo(() => {
-    let items = ITEMS
+    let items = ITEMS.filter((item): item is typeof item & { category: AllowedCategory } =>
+      ALLOWED_CATEGORIES.has(item.category as AllowedCategory)
+    )
 
     // Apply category filter
     if (selectedCategory !== 'all') {
