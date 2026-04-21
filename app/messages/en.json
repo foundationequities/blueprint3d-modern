@@ -60,6 +60,11 @@
     "brand": {
       "title": "Shelter Configurator"
     },
+    "zoom": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "reset": "Reset view"
+    },
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
       "adjustWall": "Adjust Wall"

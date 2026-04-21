@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl'
 import { TopNavBar } from './TopNavBar'
 import { ConfiguratorSidebar } from './ConfiguratorSidebar'
 import { ShelterEmptyState } from './ShelterEmptyState'
+import { ZoomControls } from './ZoomControls'
 import { ProjectsView } from './ProjectsView'
 import { SettingsDialog } from './SettingsDialog'
 import { ContextMenu } from './ContextMenu'
@@ -305,6 +306,30 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     resizeObserver.observe(contentRef.current)
     return () => resizeObserver.disconnect()
   }, [activeTab, viewMode])
+
+  const handleZoomIn = useCallback(() => {
+    const three = blueprint3dRef.current?.three
+    if (!three) return
+    // dollyOut multiplies scale by <1, shrinking the orbit radius → camera moves closer (zoom in).
+    three.controls.dollyOut(0.85)
+    three.controls.update()
+    three.needsUpdate()
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    const three = blueprint3dRef.current?.three
+    if (!three) return
+    three.controls.dollyIn(0.85)
+    three.controls.update()
+    three.needsUpdate()
+  }, [])
+
+  const handleZoomReset = useCallback(() => {
+    const three = blueprint3dRef.current?.three
+    if (!three) return
+    three.centerCamera()
+    three.needsUpdate()
+  }, [])
 
   const handleViewChange = useCallback(
     (mode: '2d' | '3d') => {
@@ -636,6 +661,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             {viewMode === '3d' && (
               <>
                 {!isFullscreen && <ControlsHelp viewMode="3d" />}
+                {!isFullscreen && builtSelectionId && (
+                  <ZoomControls
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    onReset={handleZoomReset}
+                  />
+                )}
                 {renderOverlay && renderOverlay()}
 
                 {itemsLoading > 0 && (
