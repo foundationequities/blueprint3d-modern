@@ -3,28 +3,38 @@
 import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { ImageOff, Loader2 } from 'lucide-react'
+import { ArrowLeft, ImageOff, Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { ProductPreview } from './ProductPreview'
 
-interface ProductItem {
+export interface ProductItem {
   key: string
   name: string
   modelPath: string
   thumbnailPath: string | null
   type: string
+  mountType?: 'floor' | 'wall' | 'ceiling'
+  defaultHeightAFF?: number | null
 }
 
 type ProductManifest = Record<string, ProductItem[]>
 
-const CATEGORIES = ['Bed', 'HVAC', 'Electrical', 'Racks', 'Battery', 'MoreOptions'] as const
+const CATEGORIES = [
+  'HVAC',
+  'Electrical',
+  'ServerRacks',
+  'CableRacks',
+  'Battery',
+  'MoreOptions'
+] as const
 type Category = typeof CATEGORIES[number]
 
 const CATEGORY_LABEL_KEYS: Record<Category, string> = {
-  Bed: 'bed',
   HVAC: 'hvac',
   Electrical: 'electrical',
-  Racks: 'racks',
+  ServerRacks: 'serverRacks',
+  CableRacks: 'cableRacks',
   Battery: 'battery',
   MoreOptions: 'moreOptions'
 }
@@ -39,6 +49,7 @@ export function ItemsList({ onItemSelect }: ItemsListProps) {
   const [manifest, setManifest] = useState<ProductManifest | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<'all' | Category>('all')
+  const [previewItem, setPreviewItem] = useState<ProductItem | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -71,6 +82,53 @@ export function ItemsList({ onItemSelect }: ItemsListProps) {
   }, [manifest, selectedCategory])
 
   const isLoading = manifest === null
+
+  // Preview-mode view
+  if (previewItem) {
+    return (
+      <div className="space-y-4">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setPreviewItem(null)}
+          className="-ml-2"
+        >
+          <ArrowLeft className="size-4 mr-1.5" />
+          {t('preview.back')}
+        </Button>
+
+        <ProductPreview modelPath={previewItem.modelPath} />
+
+        <div className="space-y-1">
+          <h3 className="text-sm font-semibold leading-tight">{previewItem.name}</h3>
+          {previewItem.mountType && (
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {t(`preview.mount.${previewItem.mountType}`)}
+            </p>
+          )}
+        </div>
+
+        <Button
+          type="button"
+          size="lg"
+          className="w-full font-semibold"
+          onClick={() => {
+            onItemSelect({
+              name: previewItem.name,
+              key: previewItem.key,
+              model: previewItem.modelPath,
+              type: previewItem.type
+            })
+            setPreviewItem(null)
+          }}
+        >
+          <Plus className="size-4 mr-2" />
+          {t('preview.addToScene')}
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -117,14 +175,7 @@ export function ItemsList({ onItemSelect }: ItemsListProps) {
           {items.map((item) => (
             <button
               key={item.key}
-              onClick={() =>
-                onItemSelect({
-                  name: item.name,
-                  key: item.key,
-                  model: item.modelPath,
-                  type: item.type
-                })
-              }
+              onClick={() => setPreviewItem(item)}
               className={cn(
                 'border border-border rounded-md hover:border-primary active:border-primary transition-colors',
                 'p-2 flex flex-col items-center gap-2 cursor-pointer bg-card group min-h-[140px]'
@@ -164,7 +215,9 @@ export function ItemsList({ onItemSelect }: ItemsListProps) {
           <p className="text-xs mt-2 leading-relaxed">
             {selectedCategory === 'all'
               ? t('list.dropGlbsHint')
-              : t('list.emptyCategoryHint', { category: t(`categories.${CATEGORY_LABEL_KEYS[selectedCategory as Category]}`) })}
+              : t('list.emptyCategoryHint', {
+                  category: t(`categories.${CATEGORY_LABEL_KEYS[selectedCategory as Category]}`)
+                })}
           </p>
         </div>
       )}

@@ -69,10 +69,10 @@
     "products": {
       "categories": {
         "all": "All",
-        "bed": "Bed",
         "hvac": "HVAC",
         "electrical": "Electrical",
-        "racks": "Racks",
+        "serverRacks": "Server Racks",
+        "cableRacks": "Cable Racks",
         "battery": "Battery",
         "moreOptions": "More Options"
       },
@@ -83,6 +83,17 @@
         "dropGlbsHint": "Drop .glb files into app/public/models/<category>/ and the catalog will pick them up.",
         "emptyCategoryHint": "Drop {category} GLB files into app/public/models/{category}/ and they'll appear here.",
         "manifestError": "Failed to load product catalog. Try rerunning pnpm run generate:models."
+      },
+      "preview": {
+        "back": "Back to catalog",
+        "addToScene": "Add to scene",
+        "loading": "Loading 3D preview…",
+        "error": "Couldn't load this model",
+        "mount": {
+          "floor": "Floor-mounted",
+          "wall": "Wall-mounted",
+          "ceiling": "Ceiling-mounted"
+        }
       }
     },
     "textureSelector": {

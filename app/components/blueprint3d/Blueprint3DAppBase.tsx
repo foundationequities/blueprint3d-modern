@@ -28,6 +28,10 @@ import {
   installShelterDoor,
   type ShelterDoorHandle
 } from '@/lib/shelter/shelter-door'
+import {
+  buildShelterCeiling,
+  type ShelterCeilingHandle
+} from '@/lib/shelter/shelter-ceiling'
 import { findCatalogOption } from '@/lib/shelter/shelter-catalog'
 import { useShelterStore } from '@/stores/use-shelter-store'
 
@@ -86,6 +90,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const blueprint3dRef = useRef<Blueprint3d | null>(null)
   const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
   const doorHandleRef = useRef<ShelterDoorHandle | null>(null)
+  const ceilingHandleRef = useRef<ShelterCeilingHandle | null>(null)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
@@ -134,6 +139,13 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     }
   }, [])
 
+  const disposeCeiling = useCallback(() => {
+    if (ceilingHandleRef.current) {
+      ceilingHandleRef.current.dispose()
+      ceilingHandleRef.current = null
+    }
+  }, [])
+
   const installDoorForIndex = useCallback(
     (tmpl: ShelterTemplate, index: number) => {
       const blueprint3d = blueprint3dRef.current
@@ -170,17 +182,25 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       )
 
       disposeDoor()
+      disposeCeiling()
       const payload = shelterToFloorplan(tmpl)
       blueprint3d.model.loadSerialized(JSON.stringify(payload))
 
       // Place the door on the first candidate (longest wall).
       installDoorForIndex(tmpl, 0)
 
+      // Translucent ceiling so ceiling-mounted items read clearly.
+      const ceilingHandle = buildShelterCeiling(
+        tmpl,
+        blueprint3d.model.scene.getScene()
+      )
+      if (ceilingHandle) ceilingHandleRef.current = ceilingHandle
+
       blueprint3d.model.scene.needsUpdate = true
       setBuiltInStore(option.id, tmpl)
       return tmpl
     },
-    [setBuiltInStore, disposeDoor, installDoorForIndex]
+    [setBuiltInStore, disposeDoor, disposeCeiling, installDoorForIndex]
   )
 
   const handleSwitchDoor = useCallback(() => {

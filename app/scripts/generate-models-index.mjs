@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 /**
- * Scans /app/public/models/<category>/ directories for .glb files and
- * writes /app/public/models/index.json — the manifest the ItemsList UI
- * fetches at runtime to populate the product catalog.
+ * Scans /app/public/models/<category>/ for .glb files and writes
+ * /app/public/models/index.json — the manifest the ItemsList UI fetches
+ * at runtime to populate the product catalog.
  *
  * - Categories are fixed (matches the sidebar buttons): Bed, HVAC,
- *   Electrical, Racks, Battery, MoreOptions.
+ *   Electrical, CableRacks, Battery, MoreOptions.
  * - For each <name>.glb, looks for a <name>.png/.jpg/.jpeg/.webp
- *   thumbnail in the same folder. If absent, thumbnailPath is null
- *   and the UI shows a placeholder.
+ *   thumbnail in the same folder. If absent, thumbnailPath is null and
+ *   the UI shows a placeholder.
+ * - CATEGORY_CONFIG attaches the right mount type and Item factory id
+ *   to every product in a category (HVAC + Electrical are wall items,
+ *   CableRacks are ceiling items, Bed + Battery + MoreOptions are floor
+ *   items).
  * - Pre-seeded entries (e.g. legacy CDN-hosted bed) live in
  *   models-seed.json next to this script and are merged in first.
  *
@@ -31,14 +35,17 @@ const MODELS_DIR = join(APP_DIR, 'public', 'models')
 const OUTPUT = join(MODELS_DIR, 'index.json')
 const SEED_FILE = join(__dirname, 'models-seed.json')
 
-const CATEGORIES = [
-  'Bed',
-  'HVAC',
-  'Electrical',
-  'Racks',
-  'Battery',
-  'MoreOptions'
-]
+/** Item types reflect the factory ids in src/items/factory.ts.
+ *  1 = FloorItem, 2 = WallItem, 11 = CeilingItem (added Phase 2). */
+const CATEGORY_CONFIG = {
+  HVAC:        { mountType: 'wall',    itemType: '2', defaultHeightAFF: 84 },
+  Electrical:  { mountType: 'wall',    itemType: '2', defaultHeightAFF: 60 },
+  ServerRacks: { mountType: 'floor',   itemType: '1' },
+  CableRacks:  { mountType: 'ceiling', itemType: '11' },
+  Battery:     { mountType: 'floor',   itemType: '1' },
+  MoreOptions: { mountType: 'floor',   itemType: '1' }
+}
+const CATEGORIES = Object.keys(CATEGORY_CONFIG)
 const THUMB_EXTS = ['png', 'jpg', 'jpeg', 'webp']
 
 const seed = existsSync(SEED_FILE)
@@ -47,6 +54,7 @@ const seed = existsSync(SEED_FILE)
 
 const manifest = {}
 for (const category of CATEGORIES) {
+  const cfg = CATEGORY_CONFIG[category]
   const dir = join(MODELS_DIR, category)
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true })
@@ -54,7 +62,15 @@ for (const category of CATEGORIES) {
 
   const items = []
   if (Array.isArray(seed[category])) {
-    items.push(...seed[category])
+    for (const seeded of seed[category]) {
+      items.push({
+        mountType: cfg.mountType,
+        itemType: cfg.itemType,
+        defaultHeightAFF: cfg.defaultHeightAFF ?? null,
+        ...seeded,
+        type: seeded.type ?? cfg.itemType
+      })
+    }
   }
 
   const entries = readdirSync(dir, { withFileTypes: true })
@@ -79,7 +95,9 @@ for (const category of CATEGORIES) {
       name: humanize(base),
       modelPath: `/models/${category}/${glb}`,
       thumbnailPath,
-      type: '1'
+      type: cfg.itemType,
+      mountType: cfg.mountType,
+      defaultHeightAFF: cfg.defaultHeightAFF ?? null
     })
   }
 

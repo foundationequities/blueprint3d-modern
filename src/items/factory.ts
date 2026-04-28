@@ -2,6 +2,7 @@ import type { Item } from './item'
 import type { Model } from '../model/model'
 import type { Metadata } from './metadata'
 import * as THREE from 'three'
+import { CeilingItem } from './ceiling_item'
 import { CornerItem } from './corner_item'
 import { FloorItem } from './floor_item'
 import { InWallFloorItem } from './in_wall_floor_item'
@@ -29,7 +30,8 @@ const item_types: Record<number, ItemConstructor> = {
   7: InWallFloorItem,
   8: OnFloorItem,
   9: WallFloorItem,
-  10: CornerItem
+  10: CornerItem,
+  11: CeilingItem as any // CeilingItem is abstract; instantiable at runtime
 }
 
 /** Factory class to create items. */

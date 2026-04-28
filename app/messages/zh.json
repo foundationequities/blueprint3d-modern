@@ -69,10 +69,10 @@
     "products": {
       "categories": {
         "all": "全部",
-        "bed": "床",
         "hvac": "空调",
         "electrical": "电气",
-        "racks": "机柜",
+        "serverRacks": "服务器机架",
+        "cableRacks": "电缆桥架",
         "battery": "电池",
         "moreOptions": "更多选项"
       },
@@ -83,6 +83,17 @@
         "dropGlbsHint": "将 .glb 文件放入 app/public/models/<类别>/ 后，目录会自动加载。",
         "emptyCategoryHint": "将 {category} 的 GLB 文件放入 app/public/models/{category}/ 即可显示。",
         "manifestError": "产品目录加载失败，请重新运行 pnpm run generate:models。"
+      },
+      "preview": {
+        "back": "返回目录",
+        "addToScene": "添加到场景",
+        "loading": "正在加载 3D 预览…",
+        "error": "无法加载此模型",
+        "mount": {
+          "floor": "地面安装",
+          "wall": "墙面安装",
+          "ceiling": "吊顶安装"
+        }
       }
     },
     "textureSelector": {

@@ -69,10 +69,10 @@
     "products": {
       "categories": {
         "all": "全部",
-        "bed": "床",
         "hvac": "空調",
         "electrical": "電氣",
-        "racks": "機櫃",
+        "serverRacks": "伺服器機架",
+        "cableRacks": "纜線橋架",
         "battery": "電池",
         "moreOptions": "更多選項"
       },
@@ -83,6 +83,17 @@
         "dropGlbsHint": "將 .glb 檔案放入 app/public/models/<類別>/ 後，目錄會自動載入。",
         "emptyCategoryHint": "將 {category} 的 GLB 檔案放入 app/public/models/{category}/ 即可顯示。",
         "manifestError": "產品目錄載入失敗，請重新執行 pnpm run generate:models。"
+      },
+      "preview": {
+        "back": "返回目錄",
+        "addToScene": "新增至場景",
+        "loading": "正在載入 3D 預覽…",
+        "error": "無法載入此模型",
+        "mount": {
+          "floor": "地面安裝",
+          "wall": "牆面安裝",
+          "ceiling": "天花板安裝"
+        }
       }
     },
     "textureSelector": {
