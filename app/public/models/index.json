@@ -1,8 +1,38 @@
 {
-  "HVAC": [],
-  "Electrical": [],
+  "HVAC": [
+    {
+      "key": "HVAC/hvac",
+      "name": "Hvac",
+      "modelPath": "/models/HVAC/hvac.glb",
+      "thumbnailPath": null,
+      "type": "2",
+      "mountType": "wall",
+      "defaultHeightAFF": 84
+    }
+  ],
+  "Electrical": [
+    {
+      "key": "Electrical/eltek-flatpack",
+      "name": "Eltek Flatpack",
+      "modelPath": "/models/Electrical/eltek-flatpack.glb",
+      "thumbnailPath": null,
+      "type": "2",
+      "mountType": "wall",
+      "defaultHeightAFF": 60
+    }
+  ],
   "ServerRacks": [],
-  "CableRacks": [],
+  "CableRacks": [
+    {
+      "key": "CableRacks/cable-rack",
+      "name": "Cable Rack",
+      "modelPath": "/models/CableRacks/cable-rack.glb",
+      "thumbnailPath": null,
+      "type": "11",
+      "mountType": "ceiling",
+      "defaultHeightAFF": null
+    }
+  ],
   "Battery": [],
   "MoreOptions": []
 }
