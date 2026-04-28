@@ -66,6 +66,25 @@
       "zoomOut": "缩小",
       "reset": "重置视图"
     },
+    "products": {
+      "categories": {
+        "all": "全部",
+        "bed": "床",
+        "hvac": "空调",
+        "electrical": "电气",
+        "racks": "机柜",
+        "battery": "电池",
+        "moreOptions": "更多选项"
+      },
+      "list": {
+        "loading": "正在加载产品…",
+        "noPreview": "无预览",
+        "noItemsFound": "此类别暂无产品",
+        "dropGlbsHint": "将 .glb 文件放入 app/public/models/<类别>/ 后，目录会自动加载。",
+        "emptyCategoryHint": "将 {category} 的 GLB 文件放入 app/public/models/{category}/ 即可显示。",
+        "manifestError": "产品目录加载失败，请重新运行 pnpm run generate:models。"
+      }
+    },
     "textureSelector": {
       "adjustFloor": "调整地板",
       "adjustWall": "调整墙面"

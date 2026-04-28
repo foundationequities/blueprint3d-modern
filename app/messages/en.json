@@ -66,6 +66,25 @@
       "zoomOut": "Zoom out",
       "reset": "Reset view"
     },
+    "products": {
+      "categories": {
+        "all": "All",
+        "bed": "Bed",
+        "hvac": "HVAC",
+        "electrical": "Electrical",
+        "racks": "Racks",
+        "battery": "Battery",
+        "moreOptions": "More Options"
+      },
+      "list": {
+        "loading": "Loading products…",
+        "noPreview": "No preview",
+        "noItemsFound": "No products in this category yet",
+        "dropGlbsHint": "Drop .glb files into app/public/models/<category>/ and the catalog will pick them up.",
+        "emptyCategoryHint": "Drop {category} GLB files into app/public/models/{category}/ and they'll appear here.",
+        "manifestError": "Failed to load product catalog. Try rerunning pnpm run generate:models."
+      }
+    },
     "textureSelector": {
       "adjustFloor": "Adjust Floor",
       "adjustWall": "Adjust Wall"

@@ -603,9 +603,11 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
       description?: string
     }) => {
       if (!blueprint3dRef.current) return
-      const translatedName = tItems(item.key)
-      const toastId = toast.loading(tItems('loadingItem', { name: translatedName }))
-      loadingToastsRef.current.push({ toastId, itemName: translatedName })
+      // The new manifest-driven items don't have BluePrint.items.<key> entries,
+      // so use the manifest-supplied display name directly for toasts.
+      const displayName = item.name
+      const toastId = toast.loading(tItems('loadingItem', { name: displayName }))
+      loadingToastsRef.current.push({ toastId, itemName: displayName })
 
       const metadata = {
         itemName: item.name,

@@ -66,6 +66,25 @@
       "zoomOut": "縮小",
       "reset": "重置視圖"
     },
+    "products": {
+      "categories": {
+        "all": "全部",
+        "bed": "床",
+        "hvac": "空調",
+        "electrical": "電氣",
+        "racks": "機櫃",
+        "battery": "電池",
+        "moreOptions": "更多選項"
+      },
+      "list": {
+        "loading": "正在載入產品…",
+        "noPreview": "無預覽",
+        "noItemsFound": "此類別暫無產品",
+        "dropGlbsHint": "將 .glb 檔案放入 app/public/models/<類別>/ 後，目錄會自動載入。",
+        "emptyCategoryHint": "將 {category} 的 GLB 檔案放入 app/public/models/{category}/ 即可顯示。",
+        "manifestError": "產品目錄載入失敗，請重新執行 pnpm run generate:models。"
+      }
+    },
     "textureSelector": {
       "adjustFloor": "调整地板",
       "adjustWall": "调整墙面"
