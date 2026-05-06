@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { animate } from 'animejs'
 import { EventEmitter } from '../core/events'
 import { Controller } from './controller'
@@ -95,9 +96,18 @@ export class Main {
     })
     this.renderer.autoClear = false
     this.renderer.shadowMap.enabled = true
-    this.renderer.shadowMap.type = THREE.PCFShadowMap // Optimized: PCFShadowMap is faster than PCFSoftShadowMap
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap // Phase 1: softer shadow edges
     // Fix color space for proper color saturation (matching legacy behavior)
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
+    // Phase 1: ACES filmic tone mapping for cinematic contrast
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 1.0
+    // Phase 1: cap device pixel ratio for performance on retina/4K displays
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    // Phase 1: built-in studio environment for image-based lighting (no asset cost)
+    const pmrem = new THREE.PMREMGenerator(this.renderer)
+    this.scene.getScene().environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
+    pmrem.dispose()
 
     // Get skybox colors from CSS variables (if available)
     const { topColor, bottomColor } = this.getSkyboxColors()

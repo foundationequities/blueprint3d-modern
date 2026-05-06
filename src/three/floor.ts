@@ -42,13 +42,13 @@ export class Floor {
     floorTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
     floorTexture.minFilter = THREE.LinearMipmapLinearFilter
     floorTexture.magFilter = THREE.LinearFilter
-    const floorMaterialTop = new THREE.MeshPhongMaterial({
+    const floorMaterialTop = new THREE.MeshStandardMaterial({
       map: floorTexture,
       side: THREE.DoubleSide,
-      // ambient: 0xffffff, TODO_Ekki
-      color: 0xffffff, // Changed from 0xcccccc to 0xffffff for brighter floor
-      specular: 0x111111,  // Very subtle specular to avoid moiré
-      shininess: 3  // Very matte finish to reduce artifacts
+      color: 0xffffff,
+      roughness: 0.7,
+      metalness: 0.0,
+      envMapIntensity: 1.0
     })
 
     const textureScale = textureSettings.scale

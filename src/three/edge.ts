@@ -163,12 +163,13 @@ export class Edge {
 
   private updatePlanes(): void {
     // Switched to MeshLambertMaterial for proper lighting interaction
-    const wallMaterial = new THREE.MeshLambertMaterial({
+    const wallMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       side: THREE.FrontSide,
       map: this.texture,
-      emissive: 0xffffff,       // Keeps walls bright
-      emissiveIntensity: 0.3    // While showing depth from lighting
+      roughness: 0.85,
+      metalness: 0.0,
+      envMapIntensity: 1.0
     })
 
     const fillerMaterial = new THREE.MeshBasicMaterial({
@@ -321,6 +322,8 @@ export class Edge {
     normalAttribute.needsUpdate = true
 
     const mesh = new THREE.Mesh(geometry, material)
+    mesh.castShadow = true
+    mesh.receiveShadow = true
 
     return mesh
   }

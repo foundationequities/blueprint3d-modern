@@ -6,7 +6,7 @@
     "predev": "node scripts/generate-models-index.mjs",
     "prebuild": "node scripts/generate-models-index.mjs",
     "generate:models": "node scripts/generate-models-index.mjs",
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
