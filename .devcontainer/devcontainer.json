@@ -1,12 +1,6 @@
 {
   "name": "Shelter Configurator",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false,
-      "upgradePackages": false
-    }
-  },
   "postCreateCommand": "corepack enable && corepack prepare pnpm@10.33.0 --activate && pnpm install && cd app && pnpm install",
   "forwardPorts": [3000],
   "portsAttributes": {
