@@ -15,6 +15,7 @@
       "newPlan": "新建方案",
       "savePlan": "保存方案",
       "downloadPlan": "下载方案",
+      "exportGlb": "匯出",
       "loadPlan": "加载方案"
     },
     "floorplanner": {

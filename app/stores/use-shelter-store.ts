@@ -1,40 +1,29 @@
 import { create } from 'zustand'
-import type { ShelterTemplate } from '@/lib/shelter/shelter-template'
+import type { ShelterCatalogEntry } from '@/lib/shelter/shelter-glb-catalog'
 
 interface ShelterStore {
-  /** Catalog option id the user picked in the dropdown but has not yet built. */
+  /** Catalog id selected in the picker (optimistic — updates immediately). */
   pendingSelectionId: string | null
-  /** Catalog option id of the shelter currently rendered in the scene. */
+  /** Catalog id of the GLB currently loaded into the scene. */
   builtSelectionId: string | null
-  /** Template JSON loaded for the currently-built shelter. */
-  template: ShelterTemplate | null
-  /** Index into the door-candidate wall list (0 or 1). */
-  activeDoorIndex: number
-  setPending: (optionId: string | null) => void
-  setBuilt: (optionId: string, template: ShelterTemplate) => void
-  setActiveDoorIndex: (index: number) => void
+  /** Full catalog entry for the loaded shelter (drives the status line). */
+  builtEntry: ShelterCatalogEntry | null
+  setPending: (id: string | null) => void
+  setBuilt: (entry: ShelterCatalogEntry) => void
   clear: () => void
 }
 
 export const useShelterStore = create<ShelterStore>((set) => ({
   pendingSelectionId: null,
   builtSelectionId: null,
-  template: null,
-  activeDoorIndex: 0,
-  setPending: (optionId) => set({ pendingSelectionId: optionId }),
-  setBuilt: (optionId, template) =>
+  builtEntry: null,
+  setPending: (id) => set({ pendingSelectionId: id }),
+  setBuilt: (entry) =>
     set({
-      builtSelectionId: optionId,
-      template,
-      pendingSelectionId: optionId,
-      activeDoorIndex: 0
+      builtSelectionId: entry.id,
+      builtEntry: entry,
+      pendingSelectionId: entry.id
     }),
-  setActiveDoorIndex: (index) => set({ activeDoorIndex: index }),
   clear: () =>
-    set({
-      pendingSelectionId: null,
-      builtSelectionId: null,
-      template: null,
-      activeDoorIndex: 0
-    })
+    set({ pendingSelectionId: null, builtSelectionId: null, builtEntry: null })
 }))

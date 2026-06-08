@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, FilePlus } from 'lucide-react'
+import { Settings, FilePlus, Download } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
@@ -15,6 +15,8 @@ interface TopNavBarProps {
   onSettingsClick: () => void
   onSave: () => void
   onNew: () => void
+  onExport: () => void
+  canExport: boolean
   currentBlueprintName?: string | null
 }
 
@@ -26,6 +28,8 @@ export function TopNavBar({
   onSettingsClick,
   onSave,
   onNew,
+  onExport,
+  canExport,
   currentBlueprintName
 }: TopNavBarProps) {
   const t = useTranslations('BluePrint.sidebar')
@@ -129,6 +133,19 @@ export function TopNavBar({
             className={cn(isMobile && 'h-8 px-3 text-xs')}
           >
             {tMain('savePlan')}
+          </Button>
+
+          {/* Export GLB Button */}
+          <Button
+            onClick={onExport}
+            disabled={!canExport}
+            variant="outline"
+            size={isMobile ? 'sm' : 'sm'}
+            className={cn(isMobile && 'h-8 px-3 text-xs')}
+            aria-label={tMain('exportGlb')}
+          >
+            <Download className={cn('h-4 w-4', !isMobile && 'mr-1.5')} />
+            {!isMobile && tMain('exportGlb')}
           </Button>
 
           {/* Settings Button */}

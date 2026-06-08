@@ -5,15 +5,14 @@ import { Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ItemsList } from './ItemsList'
 import { SelectShelterPanel } from './SelectShelterPanel'
+import type { ShelterCatalogEntry } from '@/lib/shelter/shelter-glb-catalog'
 
 interface ConfiguratorSidebarProps {
   pendingSelectionId: string | null
   builtSelectionId: string | null
-  onSelect: (id: string) => void
-  onBuild: () => void
-  isBuilding: boolean
-  onSwitchDoor?: () => void
-  canSwitchDoor: boolean
+  builtEntry: ShelterCatalogEntry | null
+  onSelectShelter: (entry: ShelterCatalogEntry) => void
+  isLoading: boolean
   onItemSelect: (item: {
     name: string
     key: string
@@ -26,11 +25,9 @@ interface ConfiguratorSidebarProps {
 export function ConfiguratorSidebar({
   pendingSelectionId,
   builtSelectionId,
-  onSelect,
-  onBuild,
-  isBuilding,
-  onSwitchDoor,
-  canSwitchDoor,
+  builtEntry,
+  onSelectShelter,
+  isLoading,
   onItemSelect
 }: ConfiguratorSidebarProps) {
   const t = useTranslations('BluePrint.shelter')
@@ -42,12 +39,9 @@ export function ConfiguratorSidebar({
     <aside className="flex flex-col h-full w-full bg-card border-l border-border">
       <SelectShelterPanel
         pendingSelectionId={pendingSelectionId}
-        builtSelectionId={builtSelectionId}
-        onSelect={onSelect}
-        onBuild={onBuild}
-        isBuilding={isBuilding}
-        onSwitchDoor={onSwitchDoor}
-        canSwitchDoor={canSwitchDoor}
+        builtEntry={builtEntry}
+        onSelectShelter={onSelectShelter}
+        isLoading={isLoading}
       />
 
       <section className="flex-1 min-h-0 flex flex-col">

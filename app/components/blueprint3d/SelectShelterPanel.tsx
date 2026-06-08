@@ -1,40 +1,24 @@
 'use client'
 
-import { CheckCircle2, DoorOpen, Hammer } from 'lucide-react'
+import { CheckCircle2, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { findCatalogOption } from '@/lib/shelter/shelter-catalog'
 import { ShelterSizePicker } from './ShelterSizePicker'
+import type { ShelterCatalogEntry } from '@/lib/shelter/shelter-glb-catalog'
 
 interface SelectShelterPanelProps {
   pendingSelectionId: string | null
-  builtSelectionId: string | null
-  onSelect: (id: string) => void
-  onBuild: () => void
-  isBuilding: boolean
-  onSwitchDoor?: () => void
-  canSwitchDoor: boolean
+  builtEntry: ShelterCatalogEntry | null
+  onSelectShelter: (entry: ShelterCatalogEntry) => void
+  isLoading: boolean
 }
 
 export function SelectShelterPanel({
   pendingSelectionId,
-  builtSelectionId,
-  onSelect,
-  onBuild,
-  isBuilding,
-  onSwitchDoor,
-  canSwitchDoor
+  builtEntry,
+  onSelectShelter,
+  isLoading
 }: SelectShelterPanelProps) {
   const t = useTranslations('BluePrint.shelter')
-
-  const pending = pendingSelectionId ? findCatalogOption(pendingSelectionId) : null
-  const built = builtSelectionId ? findCatalogOption(builtSelectionId) : null
-  const hasPendingChange =
-    !!pending && pending.id !== builtSelectionId
-
-  const buildDisabled =
-    !pending || isBuilding || (!!built && built.id === pending.id)
 
   return (
     <section className="border-b border-border p-5 space-y-4 bg-card">
@@ -49,56 +33,28 @@ export function SelectShelterPanel({
 
       <ShelterSizePicker
         selectedId={pendingSelectionId}
-        onSelect={onSelect}
+        onSelect={onSelectShelter}
+        disabled={isLoading}
       />
 
-      <Button
-        type="button"
-        onClick={onBuild}
-        disabled={buildDisabled}
-        size="lg"
-        className={cn(
-          'w-full font-semibold tracking-wide',
-          !buildDisabled && 'shadow-md'
-        )}
-      >
-        <Hammer className="size-4 mr-2" />
-        {isBuilding ? t('buildingButton') : t('buildButton')}
-      </Button>
-
-      {!!built && canSwitchDoor && onSwitchDoor && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onSwitchDoor}
-          className="w-full font-medium tracking-wide"
-        >
-          <DoorOpen className="size-4 mr-2" />
-          {t('switchDoorButton')}
-        </Button>
+      {isLoading && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="size-4 shrink-0 animate-spin" />
+          <span>{t('loadingToast')}</span>
+        </div>
       )}
 
-      {built && (
+      {!isLoading && builtEntry && (
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-500" />
           <span>
             {t('builtStatus', {
-              size: t(`sizes.${built.labelKey}`),
-              category: t(`categories.${catalogCategoryLabelKey(built.id)}`)
+              size: builtEntry.sizeLabel,
+              category: builtEntry.label
             })}
-            {hasPendingChange && (
-              <span className="block text-amber-500 mt-1">
-                {t('pendingChange')}
-              </span>
-            )}
           </span>
         </div>
       )}
     </section>
   )
-}
-
-function catalogCategoryLabelKey(optionId: string): string {
-  return optionId.startsWith('datacomm-') ? 'datacommPro' : 'concrete'
 }

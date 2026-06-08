@@ -15,6 +15,7 @@
       "newPlan": "New Plan",
       "savePlan": "Save Plan",
       "downloadPlan": "Download Plan",
+      "exportGlb": "Export",
       "loadPlan": "Load Plan"
     },
     "floorplanner": {
@@ -32,18 +33,14 @@
       "sizeLabel": "Shelter size",
       "sizePlaceholder": "Select a shelter",
       "selectHeader": "Select shelter size",
-      "selectSubhead": "Choose a product line and size, then build.",
-      "buildButton": "Build shelter",
-      "buildingButton": "Building…",
-      "switchDoorButton": "Switch door side",
-      "builtStatus": "Built: {size} {category}",
-      "pendingChange": "Selection changed — click Build to rebuild.",
+      "selectSubhead": "Choose a product line and size to load it.",
+      "builtStatus": "Loaded: {size} {category}",
       "emptyTitle": "No shelter yet",
-      "emptyBody": "Pick a size from the right panel and click Build to start your configuration.",
-      "itemsLocked": "Build first",
-      "loadingToast": "Building shelter…",
-      "loadedToast": "Built {name}",
-      "loadError": "Failed to build shelter",
+      "emptyBody": "Pick a product line and size from the right panel to start your configuration.",
+      "itemsLocked": "Select a shelter first",
+      "loadingToast": "Loading shelter…",
+      "loadedToast": "Loaded {name}",
+      "loadError": "Failed to load shelter",
       "categories": {
         "concrete": "Concrete",
         "datacommPro": "Datacomm Pro"

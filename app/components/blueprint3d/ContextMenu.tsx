@@ -132,6 +132,19 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
     return null
   }
 
+  // Resolve a display name. Items added from the manifest (HVAC, electrical,
+  // racks) often have no BluePrint.items.<key> translation, and next-intl
+  // throws MISSING_MESSAGE for unknown keys — fall back to the metadata name.
+  const itemKey = selectedItem.metadata?.itemKey
+  let displayName = selectedItem.metadata?.itemName ?? ''
+  if (itemKey) {
+    try {
+      displayName = tItems(itemKey)
+    } catch {
+      displayName = selectedItem.metadata?.itemName ?? itemKey
+    }
+  }
+
   return (
     <div className={cn(
       'bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg animate-in fade-in-0 slide-in-from-right-5 duration-300',
@@ -140,7 +153,7 @@ export function ContextMenu({ selectedItem, onDelete, onResize, onFixedChange }:
       {/* Header with item name */}
       <div className="flex items-center justify-between mb-3">
         <span className={cn('font-semibold truncate', isMobile ? 'text-base' : 'text-sm')}>
-          {selectedItem.metadata?.itemKey ? tItems(selectedItem.metadata.itemKey) : selectedItem.metadata?.itemName}
+          {displayName}
         </span>
         <Button
           variant="ghost"

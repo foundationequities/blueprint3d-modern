@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -18,29 +18,15 @@ import { TouchHelp } from './TouchHelp'
 import { ControlsHelp } from './ControlsHelp'
 import { blueprintStorage } from '@/services/storage'
 import {
-  INCH_TO_CM,
-  loadShelterById,
-  shelterToFloorplan,
-  type ShelterTemplate
-} from '@/lib/shelter/shelter-template'
-import {
-  getDoorCandidateWallIds,
-  installShelterDoor,
-  type ShelterDoorHandle
-} from '@/lib/shelter/shelter-door'
-import {
-  buildShelterCeiling,
-  type ShelterCeilingHandle
-} from '@/lib/shelter/shelter-ceiling'
-import { findCatalogOption } from '@/lib/shelter/shelter-catalog'
+  loadShelterGLB,
+  type LoadedShelter
+} from '@/lib/shelter/shelter-glb-loader'
+import { exportSceneAsGLB } from '@/lib/shelter/shelter-glb-exporter'
+import type { ShelterCatalogEntry } from '@/lib/shelter/shelter-glb-catalog'
 import { useShelterStore } from '@/stores/use-shelter-store'
 
 import { Blueprint3d } from '@blueprint3d/blueprint3d'
-import {
-  Configuration,
-  configDimUnit,
-  configWallHeight
-} from '@blueprint3d/core/configuration'
+import { Configuration, configDimUnit } from '@blueprint3d/core/configuration'
 import type { Item } from '@blueprint3d/items/item'
 import type { HalfEdge } from '@blueprint3d/model/half_edge'
 import type { Room } from '@blueprint3d/model/room'
@@ -89,8 +75,7 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
   const floorplannerCanvasRef = useRef<HTMLCanvasElement>(null)
   const blueprint3dRef = useRef<Blueprint3d | null>(null)
   const loadingToastsRef = useRef<Array<{ toastId: string | number; itemName: string }>>([])
-  const doorHandleRef = useRef<ShelterDoorHandle | null>(null)
-  const ceilingHandleRef = useRef<ShelterCeilingHandle | null>(null)
+  const shelterHandleRef = useRef<LoadedShelter | null>(null)
 
   const [activeTab, setActiveTab] = useState<'projects' | 'edit' | 'items'>(
     openMyFloorplans ? 'projects' : 'edit'
@@ -105,17 +90,10 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
 
   const pendingSelectionId = useShelterStore((s) => s.pendingSelectionId)
   const builtSelectionId = useShelterStore((s) => s.builtSelectionId)
-  const template = useShelterStore((s) => s.template)
-  const activeDoorIndex = useShelterStore((s) => s.activeDoorIndex)
+  const builtEntry = useShelterStore((s) => s.builtEntry)
   const setPendingSelection = useShelterStore((s) => s.setPending)
   const setBuiltInStore = useShelterStore((s) => s.setBuilt)
-  const setActiveDoorIndex = useShelterStore((s) => s.setActiveDoorIndex)
   const [isBuilding, setIsBuilding] = useState(false)
-
-  const doorCandidates = useMemo(
-    () => (template ? getDoorCandidateWallIds(template) : []),
-    [template]
-  )
 
   const [currentBlueprint, setCurrentBlueprint] = useState<{
     id: string
@@ -132,110 +110,96 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
     return enableWheelZoom
   }, [enableWheelZoom])
 
-  const disposeDoor = useCallback(() => {
-    if (doorHandleRef.current) {
-      doorHandleRef.current.dispose()
-      doorHandleRef.current = null
+  // Remove the GLB currently in the scene (if any) before loading another.
+  const disposeShelter = useCallback(() => {
+    const blueprint3d = blueprint3dRef.current
+    const handle = shelterHandleRef.current
+    if (handle) {
+      if (blueprint3d) blueprint3d.model.scene.getScene().remove(handle.root)
+      handle.dispose()
+      shelterHandleRef.current = null
     }
   }, [])
 
-  const disposeCeiling = useCallback(() => {
-    if (ceilingHandleRef.current) {
-      ceilingHandleRef.current.dispose()
-      ceilingHandleRef.current = null
-    }
+  // Point the camera at the loaded shelter using its bounding box, since
+  // there's no procedural floorplan to drive Main.centerCamera() anymore.
+  const frameCameraToShelter = useCallback((loaded: LoadedShelter) => {
+    const three = blueprint3dRef.current?.three
+    if (!three) return
+    const size = loaded.bbox.getSize(new THREE.Vector3())
+    const maxDim = Math.max(size.x, size.y, size.z)
+    const dist = maxDim * 1.6
+    const centerY = size.y / 2
+    three.controls.target.set(0, centerY, 0)
+    three.camera.position.set(dist, dist * 0.85, dist)
+    three.camera.lookAt(0, centerY, 0)
+    three.controls.update()
+    three.needsUpdate()
   }, [])
 
-  const installDoorForIndex = useCallback(
-    (tmpl: ShelterTemplate, index: number) => {
+  const handleSelectShelter = useCallback(
+    async (entry: ShelterCatalogEntry) => {
       const blueprint3d = blueprint3dRef.current
-      if (!blueprint3d) return
-      const candidates = getDoorCandidateWallIds(tmpl)
-      if (candidates.length === 0) return
-      const wallId = candidates[index % candidates.length]
-      disposeDoor()
-      const handle = installShelterDoor(
-        tmpl,
-        wallId,
-        blueprint3d.model.scene.getScene(),
-        blueprint3d.model.floorplan
-      )
-      if (handle) {
-        doorHandleRef.current = handle
-      }
-      blueprint3d.model.scene.needsUpdate = true
-    },
-    [disposeDoor]
-  )
+      if (!blueprint3d || isBuilding) return
+      if (entry.id === builtSelectionId) return
 
-  const buildShelterFromOption = useCallback(
-    async (optionId: string): Promise<ShelterTemplate> => {
-      const blueprint3d = blueprint3dRef.current
-      if (!blueprint3d) throw new Error('Blueprint3d not initialized')
-      const option = findCatalogOption(optionId)
-      if (!option) throw new Error(`Unknown shelter option: ${optionId}`)
+      setPendingSelection(entry.id)
+      setIsBuilding(true)
+      const toastId = toast.loading(tShelter('loadingToast'))
+      try {
+        const loaded = await loadShelterGLB(entry.url)
 
-      const tmpl = await loadShelterById(option.templateId)
-      Configuration.setValue(
-        configWallHeight,
-        tmpl.dimensions.ceilingHeightIn * INCH_TO_CM
-      )
+        // Swap out any previously-loaded shelter.
+        disposeShelter()
+        shelterHandleRef.current = loaded
 
-      disposeDoor()
-      disposeCeiling()
-      const payload = shelterToFloorplan(tmpl)
-      blueprint3d.model.loadSerialized(JSON.stringify(payload))
+        // Recenter on the origin (X/Z) and sit it on the floor (y = 0).
+        const center = loaded.bbox.getCenter(new THREE.Vector3())
+        loaded.root.position.x -= center.x
+        loaded.root.position.z -= center.z
+        loaded.root.position.y -= loaded.bbox.min.y
 
-      // Place the door on the first candidate (longest wall).
-      installDoorForIndex(tmpl, 0)
+        blueprint3d.model.scene.getScene().add(loaded.root)
+        blueprint3d.model.scene.needsUpdate = true
 
-      // Translucent ceiling so ceiling-mounted items read clearly.
-      const ceilingHandle = buildShelterCeiling(
-        tmpl,
-        blueprint3d.model.scene.getScene()
-      )
-      if (ceilingHandle) ceilingHandleRef.current = ceilingHandle
-
-      blueprint3d.model.scene.needsUpdate = true
-      setBuiltInStore(option.id, tmpl)
-      return tmpl
-    },
-    [setBuiltInStore, disposeDoor, disposeCeiling, installDoorForIndex]
-  )
-
-  const handleSwitchDoor = useCallback(() => {
-    if (!template || doorCandidates.length < 2) return
-    const next = (activeDoorIndex + 1) % doorCandidates.length
-    installDoorForIndex(template, next)
-    setActiveDoorIndex(next)
-  }, [template, doorCandidates, activeDoorIndex, installDoorForIndex, setActiveDoorIndex])
-
-  const handleShelterSelect = useCallback(
-    (optionId: string) => {
-      setPendingSelection(optionId)
-    },
-    [setPendingSelection]
-  )
-
-  const handleBuildShelter = useCallback(() => {
-    if (!pendingSelectionId || isBuilding) return
-    if (pendingSelectionId === builtSelectionId) return
-    setIsBuilding(true)
-    const toastId = toast.loading(tShelter('loadingToast'))
-    buildShelterFromOption(pendingSelectionId)
-      .then((template) => {
-        toast.success(tShelter('loadedToast', { name: template.name }), {
+        frameCameraToShelter(loaded)
+        setBuiltInStore(entry)
+        toast.success(tShelter('loadedToast', { name: entry.sizeLabel }), {
           id: toastId
         })
-      })
-      .catch((err) => {
-        console.error('[Blueprint3DAppBase] Error building shelter:', err)
+      } catch (err) {
+        console.error('[Blueprint3DAppBase] Error loading shelter GLB:', err)
         toast.error(tShelter('loadError'), { id: toastId })
-      })
-      .finally(() => {
+      } finally {
         setIsBuilding(false)
-      })
-  }, [pendingSelectionId, builtSelectionId, isBuilding, buildShelterFromOption, tShelter])
+      }
+    },
+    [
+      isBuilding,
+      builtSelectionId,
+      setPendingSelection,
+      setBuiltInStore,
+      disposeShelter,
+      frameCameraToShelter,
+      tShelter
+    ]
+  )
+
+  const handleExport = useCallback(async () => {
+    const blueprint3d = blueprint3dRef.current
+    if (!blueprint3d || !builtSelectionId) return
+    const toastId = toast.loading('Exporting…')
+    try {
+      await exportSceneAsGLB(
+        blueprint3d.model.scene.getScene(),
+        'shelter-layout.glb'
+      )
+      toast.success('Exported shelter-layout.glb', { id: toastId })
+    } catch (err) {
+      console.error('[Blueprint3DAppBase] Error exporting scene:', err)
+      toast.error('Export failed', { id: toastId })
+    }
+  }, [builtSelectionId])
 
   // Initialize Blueprint3d
   useEffect(() => {
@@ -671,6 +635,8 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
             onSettingsClick={() => setSettingsOpen(true)}
             onSave={handleSave}
             onNew={handleNew}
+            onExport={handleExport}
+            canExport={!!builtSelectionId}
             currentBlueprintName={currentBlueprint?.name}
           />
         </div>
@@ -790,11 +756,9 @@ export function Blueprint3DAppBase({ config = {} }: Blueprint3DAppBaseProps) {
           <ConfiguratorSidebar
             pendingSelectionId={pendingSelectionId}
             builtSelectionId={builtSelectionId}
-            onSelect={handleShelterSelect}
-            onBuild={handleBuildShelter}
-            isBuilding={isBuilding}
-            onSwitchDoor={handleSwitchDoor}
-            canSwitchDoor={doorCandidates.length >= 2}
+            builtEntry={builtEntry}
+            onSelectShelter={handleSelectShelter}
+            isLoading={isBuilding}
             onItemSelect={handleItemSelect}
           />
         </div>
