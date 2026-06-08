@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/generate-models-index.mjs",
-    "prebuild": "node scripts/generate-models-index.mjs",
+    "predev": "node scripts/generate-models-index.mjs && node scripts/generate-shelters-index.mjs",
+    "prebuild": "node scripts/generate-models-index.mjs && node scripts/generate-shelters-index.mjs",
     "generate:models": "node scripts/generate-models-index.mjs",
     "dev": "next dev",
     "build": "next build",

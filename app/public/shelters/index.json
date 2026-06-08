@@ -1,0 +1,134 @@
+{
+  "shelters": [
+    {
+      "id": "RMS-9x16",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 9,
+      "lengthFt": 16,
+      "sizeLabel": "9' × 16'",
+      "url": "/shelters/RMS-SHELTER-9X16.glb"
+    },
+    {
+      "id": "RMS-10x12",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 10,
+      "lengthFt": 12,
+      "sizeLabel": "10' × 12'",
+      "url": "/shelters/RMS-SHELTER-10X12.glb"
+    },
+    {
+      "id": "RMS-10x20",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 10,
+      "lengthFt": 20,
+      "sizeLabel": "10' × 20'",
+      "url": "/shelters/RMS-SHELTER-10X20.glb"
+    },
+    {
+      "id": "RMS-12x16",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 12,
+      "lengthFt": 16,
+      "sizeLabel": "12' × 16'",
+      "url": "/shelters/RMS-SHELTER-12X16.glb"
+    },
+    {
+      "id": "RMS-12x20",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 12,
+      "lengthFt": 20,
+      "sizeLabel": "12' × 20'",
+      "url": "/shelters/RMS-SHELTER-12X20.glb"
+    },
+    {
+      "id": "RMS-12x28",
+      "manufacturer": "RMS",
+      "type": "concrete",
+      "label": "Concrete",
+      "widthFt": 12,
+      "lengthFt": 28,
+      "sizeLabel": "12' × 28'",
+      "url": "/shelters/RMS-SHELTER-12X28.glb"
+    },
+    {
+      "id": "DPS-12x10",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 10,
+      "sizeLabel": "12' × 10'",
+      "url": "/shelters/DPS-SHELTER-12X10.glb"
+    },
+    {
+      "id": "DPS-12x16",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 16,
+      "sizeLabel": "12' × 16'",
+      "url": "/shelters/DPS-SHELTER-12X16.glb"
+    },
+    {
+      "id": "DPS-12x20",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 20,
+      "sizeLabel": "12' × 20'",
+      "url": "/shelters/DPS-SHELTER-12X20.glb"
+    },
+    {
+      "id": "DPS-12x26",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 26,
+      "sizeLabel": "12' × 26'",
+      "url": "/shelters/DPS-SHELTER-12X26.glb"
+    },
+    {
+      "id": "DPS-12x30",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 30,
+      "sizeLabel": "12' × 30'",
+      "url": "/shelters/DPS-SHELTER-12X30.glb"
+    },
+    {
+      "id": "DPS-12x36",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 12,
+      "lengthFt": 36,
+      "sizeLabel": "12' × 36'",
+      "url": "/shelters/DPS-SHELTER-12X36.glb"
+    },
+    {
+      "id": "DPS-24x36",
+      "manufacturer": "DPS",
+      "type": "datacomm",
+      "label": "Datacomm Pro",
+      "widthFt": 24,
+      "lengthFt": 36,
+      "sizeLabel": "24' × 36'",
+      "url": "/shelters/DPS-SHELTER-24X36.glb"
+    }
+  ]
+}
