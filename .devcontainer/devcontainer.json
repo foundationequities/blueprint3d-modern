@@ -1,8 +1,10 @@
 {
   "name": "Shelter Configurator",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
-  "postCreateCommand": "corepack enable && corepack prepare pnpm@10.33.0 --activate && pnpm install && cd app && pnpm install",
-  "forwardPorts": [3000],
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y git-lfs && git lfs install && corepack enable && corepack prepare pnpm@10.33.0 --activate && pnpm install && cd app && pnpm install",
+  "forwardPorts": [
+    3000
+  ],
   "portsAttributes": {
     "3000": {
       "label": "Shelter Configurator",
